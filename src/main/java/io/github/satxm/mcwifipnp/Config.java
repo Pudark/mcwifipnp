@@ -77,8 +77,10 @@ public class Config {
 	/*
 	 * This constructor exists to be used by GSON
 	 */
+
 	private Config() {
 		this(false);
+
 	}
 
 	private Config(boolean usingDefaults) {
@@ -184,4 +186,42 @@ public class Config {
 		UUIDFixer.enabled = this.enableUUIDFixer;
 	}
 
+    // 静态server实例缓存
+    private static MinecraftServer currentServer = null;
+
+    /**
+     * 设置当前服务器实例（供混入调用）
+     */
+    public static void setCurrentServer(MinecraftServer server) {
+        currentServer = server;
+        LOGGER.debug("Config server instance updated: {}", server != null ? "set" : "cleared");
+    }
+
+    /**
+     * 无参数版本的getConfigPath（供混入调用）
+     * 这是崩溃堆栈中显示的方法
+     */
+    public static Path getConfigPath() {
+        if (currentServer == null) {
+            LOGGER.warn("Server instance is null in getConfigPath(), using fallback path");
+            return Path.of("config/mcwifipnp.json");
+        }
+        return getConfigPath(currentServer);
+    }
+
+    /**
+     * 无参数版本的read（供混入调用）
+     * 这是崩溃堆栈中显示的方法
+     */
+    public static Config read() {
+        if (currentServer == null) {
+            LOGGER.warn("Server instance is null in read(), returning default config");
+            return new Config(true);
+        }
+        return read(currentServer);
+    }
+
+// ========== 修复结束 ==========
+
 }
+

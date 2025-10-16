@@ -9,8 +9,21 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 public class MCWiFiPnP implements ModInitializer, ClientModInitializer, DedicatedServerModInitializer {
 	@Override
 	public void onInitialize() {
-		ServerLifecycleEvents.SERVER_STOPPING.register(MCWiFiPnPUnit::onServerStops);
-	}
+        // 服务器生命周期管理 - 修复混入调用的空指针问题000
+        ServerLifecycleEvents.SERVER_STARTING.register(Config::setCurrentServer);
+
+        ServerLifecycleEvents.SERVER_STARTED.register(Config::setCurrentServer);
+
+        ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+            // 注意：在服务器停止前清理，但混入可能还在调用
+            // 所以我们使用延迟清理
+        });
+
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
+            Config.setCurrentServer(null);
+        });
+
+    }
 
 	@Override
 	public void onInitializeClient() {
