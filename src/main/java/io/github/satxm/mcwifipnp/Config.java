@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
 import org.apache.logging.log4j.Logger;
@@ -88,7 +89,12 @@ public class Config {
 	}
 
 	public static Path getConfigPath(MinecraftServer server) {
-		return server.getWorldPath(LevelResource.ROOT).resolve("mcwifipnp.json");
+        // 添加空值检查
+        if (server == null) {
+            LOGGER.warn("Server instance is null in getConfigPath(), using fallback path");
+            return Paths.get("config/mcwifipnp.json");
+        }
+        return server.getWorldPath(LevelResource.ROOT).resolve("mcwifipnp.json");
 	}
 
 	/**
@@ -96,7 +102,12 @@ public class Config {
 	 * @return the latest config instance read from the path
 	 */
 	public static Config read(MinecraftServer server) {
-		return read(getConfigPath(server));
+        // 添加空值检查
+        if (server == null) {
+            LOGGER.warn("Server instance is null in read(), returning default config");
+            return new Config(true);
+        }
+        return read(getConfigPath(server));
 	}
 
 	public static Config readFromPublishedServer(MinecraftServer server) {
